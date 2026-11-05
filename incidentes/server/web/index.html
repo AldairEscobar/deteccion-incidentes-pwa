@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Central de Incidentes</title>
+  <meta name="description" content="Central de detección de incidentes: registra tu cámara y recibe alertas verificadas en tiempo real.">
+  <meta name="theme-color" content="#070b14">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Incidentes">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="/icons/icon-192.png" alt="" width="40" height="40">
+      <div class="brand-text">
+        <h1>Central de Incidentes</h1>
+        <p id="subtitle" class="muted">Cargando…</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="conn" class="pill pill-off" title="Estado del canal en vivo">
+        <span class="dot"></span><span id="connText">conectando</span>
+      </span>
+      <button id="installBtn" class="btn ghost" hidden>Instalar</button>
+      <button id="settingsBtn" class="btn ghost icon" title="Ajustes" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8.94 3a7.9 7.9 0 0 0-.1-1l2.03-1.58-2-3.46-2.39.96a7.9 7.9 0 0 0-1.73-1L16.4 2h-4l-.35 2.92a7.9 7.9 0 0 0-1.73 1l-2.39-.96-2 3.46L8.16 10a7.9 7.9 0 0 0 0 2l-2.03 1.58 2 3.46 2.39-.96c.54.42 1.12.76 1.73 1L12.6 22h4l.35-2.92c.61-.24 1.19-.58 1.73-1l2.39.96 2-3.46L21.04 14c.06-.33.1-.66.1-1Z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="workspace">
+      <!-- Cámaras: vista en vivo a la izquierda -->
+      <section id="panel-camaras" class="pane pane-cameras" aria-label="Cámaras">
+        <div class="pane-head">
+          <div>
+            <h2>Cámaras <span id="camCount" class="count">0</span></h2>
+            <p class="muted">La central analiza el vídeo; tú solo registras la fuente.</p>
+          </div>
+          <button id="toggleForm" class="btn primary">+ Añadir cámara</button>
+        </div>
+
+        <form id="cameraForm" class="card form" hidden autocomplete="off">
+          <div class="form-grid">
+            <label class="field">
+              <span>Nombre</span>
+              <input name="name" required maxlength="80" placeholder="Pasillo principal">
+            </label>
+            <label class="field field-wide">
+              <span>URL de la cámara</span>
+              <input name="source" required maxlength="500"
+                     placeholder="rtsp://usuario:clave@192.168.1.50:554/stream1">
+            </label>
+            <label class="field">
+              <span>Ubicación</span>
+              <input name="address" maxlength="200" placeholder="Piso 3 - pasillo">
+            </label>
+            <label class="field field-small">
+              <span>Latitud</span>
+              <input name="lat" type="number" step="0.00001" min="-90" max="90" placeholder="-12.05">
+            </label>
+            <label class="field field-small">
+              <span>Longitud</span>
+              <input name="lon" type="number" step="0.00001" min="-180" max="180" placeholder="-77.04">
+            </label>
+          </div>
+          <div class="form-actions">
+            <label class="switch">
+              <input type="checkbox" name="enabled" checked>
+              <span>Arrancar el análisis al guardar</span>
+            </label>
+            <div class="spacer"></div>
+            <button type="button" id="cancelForm" class="btn ghost">Cancelar</button>
+            <button type="submit" class="btn primary">Guardar cámara</button>
+          </div>
+          <p id="formError" class="error" hidden></p>
+        </form>
+
+        <div id="cameraList" class="grid"></div>
+        <div id="cameraEmpty" class="empty-state">
+          <div class="empty-icon">◎</div>
+          <h3>Sin cámaras todavía</h3>
+          <p>Añade la URL RTSP/HTTP de tu cámara IP. La central abrirá el stream y ejecutará YOLO + Ollama.</p>
+        </div>
+      </section>
+
+      <!-- Alertas y actividad: columna derecha -->
+      <aside class="pane pane-alerts" aria-label="Alertas y actividad">
+        <section id="panel-alertas">
+          <div class="pane-head">
+            <div>
+              <h2>Alertas <span id="alertCount" class="count">0</span></h2>
+              <p class="muted">Confirmadas por las dos etapas del pipeline.</p>
+            </div>
+            <button id="refreshAlerts" class="btn ghost">Actualizar</button>
+          </div>
+          <div id="alertList" class="stack"></div>
+          <div id="alertEmpty" class="empty-state">
+            <div class="empty-icon">✓</div>
+            <h3>Sin alertas</h3>
+            <p>Cuando YOLO proponga y la IA confirme un incidente, aparecerá aquí con su ticket y su captura.</p>
+          </div>
+        </section>
+
+        <section id="panel-actividad" class="activity-panel">
+          <div class="pane-head">
+            <div>
+              <h2>Actividad <span id="activityCount" class="count">0</span></h2>
+              <p class="muted">Sospechas, descartes y confirmaciones en tiempo real.</p>
+            </div>
+            <button id="clearActivity" class="btn ghost">Limpiar</button>
+          </div>
+          <ol id="activityList" class="activity"></ol>
+          <div id="activityEmpty" class="empty-state">
+            <div class="empty-icon">⌁</div>
+            <h3>Sin actividad</h3>
+            <p>Aquí verás lo que va decidiendo el pipeline en tiempo real.</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="settingsDialog" class="dialog">
+    <form method="dialog" id="settingsForm">
+      <h2>Ajustes</h2>
+      <p class="muted">La clave solo se guarda en este navegador (localStorage).</p>
+      <label class="field">
+        <span>API key (opcional)</span>
+        <input name="apiKey" type="password" placeholder="CENTRAL_API_KEY" autocomplete="off">
+      </label>
+      <label class="switch">
+        <input type="checkbox" name="sound" checked>
+        <span>Aviso sonoro al recibir una alerta</span>
+      </label>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn ghost">Cancelar</button>
+        <button value="save" class="btn primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# --- Configuración local / secretos ---
+.env
+.env.*
+!.env.example
+
+# --- Entornos de desarrollo ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Artefactos del detector ---
+# Pesos descargados o entrenados (Ultralytics los descarga en el primer uso).
+*.pt
+*.onnx
+*.engine
+
+# Videos y reportes generados por el procesamiento.
+resultado_*.mp4
+*_reporte.json
+out*.mp4
+diag_frames/
+*.log
+
+# Base de datos y evidencia de la central.
+data/
+*.db
+*.db-wal
+*.db-shm

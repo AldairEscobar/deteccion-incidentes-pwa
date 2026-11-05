@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deteccion-incidentes"
+version = "1.0.0"
+description = "Detección de incidentes violentos en video con YOLO, verificación por IA local y central de alertas REST"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["computer-vision", "yolo", "ollama", "fastapi", "hexagonal-architecture"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "ultralytics>=8.3",
+    "opencv-python>=4.10",
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+central = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "PyQt5>=5.15",
+    "matplotlib>=3.8",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+incidentes-cliente = "incidentes.cli.client:main"
+incidentes-clientes = "incidentes.cli.launch_clients:main"
+incidentes-central = "incidentes.cli.central:main"
+incidentes-serve = "incidentes.cli.serve:main"
+incidentes-demo = "incidentes.cli.deploy:main"
+incidentes-diagnostico = "incidentes.cli.diagnose:main"
+incidentes-smoke = "incidentes.cli.smoke_test:main"
+
+[tool.setuptools.packages.find]
+include = ["incidentes*"]
+
+[tool.setuptools.package-data]
+"incidentes.server" = ["web/*", "web/icons/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["incidentes"]
